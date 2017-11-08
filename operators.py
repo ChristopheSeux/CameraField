@@ -45,15 +45,22 @@ class ViewCameraField(bpy.types.Operator):
                 vector_x = frame[0] - frame[3]
                 vector_y = frame[2] - frame[3]
 
-                # for z in range(0, density):
-                #     random_x = random.random()
-                #     random_y = random.random()
+                if scene.camera_frustum_settings.distribution == 'Random':
+                    number_x, number_y = 2, 2
+                    points = [(random.random(), random.random())
+                              for z in range(density)
+                              ]
 
-                number_x = sqrt(density) / ratio
-                number_y = sqrt(density) #* ratio
+                elif scene.camera_frustum_settings.distribution == 'Grid':
+                    number_x = sqrt(density) / ratio
+                    number_y = sqrt(density)
 
-                for x in range(int(number_x)):
-                    for y in range(int(number_y)):
+                    points = [(x, y)
+                              for x in range(int(number_x))
+                              for y in range(int(number_y))
+                              ]
+
+                for x, y in points:
                         point = (frame[3]
                                  + vector_x * x / (int(number_x) - 1)
                                  + vector_y * y / (int(number_y) - 1)

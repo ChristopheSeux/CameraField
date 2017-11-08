@@ -29,6 +29,11 @@ class CameraFrustumSettings(bpy.types.PropertyGroup):
                                     name='Density',
                                     description='Camera frustum point density')
 
+    distribution = bpy.props.EnumProperty(items=(('Random',)*3, ('Grid',)*3),
+                                  default='Random',
+                                  name='Distribution',
+                                  description='How the points will be arranged')
+
 
 class CameraFrustumCameraSettings(bpy.types.PropertyGroup):
     active = bpy.props.BoolProperty(default=True,

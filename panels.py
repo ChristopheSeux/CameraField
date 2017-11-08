@@ -10,11 +10,14 @@ class CameraFrustumPanel(bpy.types.Panel):
     def draw(self, context):
         layout = self.layout
 
-        layout.prop(bpy.context.scene.camera_frustum_settings, "only_active")
-
         row = layout.row(align=True)
-        row.operator("camerafield.view_field", icon='RENDER_ANIMATION')
+        row.prop(bpy.context.scene.camera_frustum_settings, "only_active")
         row.prop(bpy.context.scene.camera_frustum_settings, "density")
+
+        layout.prop(bpy.context.scene.camera_frustum_settings, "distribution", expand=True)
+
+        layout.separator()
+        layout.operator("camerafield.view_field", icon='RENDER_ANIMATION')
 
 
 
