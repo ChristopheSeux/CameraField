@@ -27,6 +27,11 @@ class CameraFrustumCameraPanel(bpy.types.Panel):
     bl_region_type = 'WINDOW'
     bl_context = "data"
 
+    @classmethod
+    def poll(cls, context):
+        engine = context.scene.render.engine
+        return context.camera
+
     def draw(self, context):
         layout = self.layout
 
