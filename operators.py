@@ -1,5 +1,6 @@
 import bpy
 import random
+from math import sqrt
 from mathutils import Vector
 
 from .functions import draw_callback_3d
@@ -20,7 +21,7 @@ class ViewCameraField(bpy.types.Operator):
         else:
             cams = [o for o in bpy.context.visible_objects if o.type == 'CAMERA']
 
-        # ratio = bpy.context.scene.render.resolution_y / bpy.context.scene.render.resolution_x
+        ratio = bpy.context.scene.render.resolution_y / bpy.context.scene.render.resolution_x
 
         # self.frames = {}
         tmp_frame = []
@@ -44,22 +45,31 @@ class ViewCameraField(bpy.types.Operator):
                 vector_x = frame[0] - frame[3]
                 vector_y = frame[2] - frame[3]
 
-                for z in range(0, density):
-                    random_x = random.random()
-                    random_y = random.random()
-                    point = frame[3] + vector_x * random_x + vector_y * random_y
+                # for z in range(0, density):
+                #     random_x = random.random()
+                #     random_y = random.random()
 
-                    ray = scene.ray_cast(cam_coord, point - cam_coord)
+                number_x = sqrt(density) / ratio
+                number_y = sqrt(density) #* ratio
 
-                    if ray[0]:
-                        ray_closer = ray[1] + (point-ray[1]).normalized() * 0.02
+                for x in range(int(number_x)):
+                    for y in range(int(number_y)):
+                        point = (frame[3]
+                                 + vector_x * x / (int(number_x) - 1)
+                                 + vector_y * y / (int(number_y) - 1)
+                                 )
 
-                        point_color = cam_color.copy()
-                        if i in (scene.frame_start, scene.frame_end):
-                            point_color.s *= 0.5
-                        if not ray_closer in self.points["co"]:
-                            self.points["co"].append(ray_closer)
-                            self.points["colors"].append(point_color)
+                        ray = scene.ray_cast(cam_coord, point - cam_coord)
+
+                        if ray[0]:
+                            ray_closer = ray[1] + (point-ray[1]).normalized() * 0.02
+
+                            point_color = cam_color.copy()
+                            if i in (scene.frame_start, scene.frame_end):
+                                point_color.s *= 0.5
+                            if not ray_closer in self.points["co"]:
+                                self.points["co"].append(ray_closer)
+                                self.points["colors"].append(point_color)
 
     def modal(self, context, event):
         context.area.tag_redraw()
