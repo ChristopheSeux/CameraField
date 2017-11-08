@@ -2,6 +2,7 @@ import bpy
 import random
 from math import sqrt
 from mathutils import Vector
+from time import time
 
 from .functions import draw_callback_3d
 
@@ -29,9 +30,11 @@ class ViewCameraField(bpy.types.Operator):
         self.points = {"co": [],
                        "colors": []}
 
+        seed = time()  # Different seed at each execution
+
         for i in range(scene.frame_start, scene.frame_end + 1):
             scene.frame_set(i)
-            random.seed(0)  # Use a predictable seed
+            random.seed(seed)  # Use a predictable seed
 
             for cam in cams:
                 if not cam.data.camera_frustum_settings.active:
