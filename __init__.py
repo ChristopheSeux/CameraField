@@ -21,11 +21,13 @@ else:
 
 
 class CameraFrustumSettings(bpy.types.PropertyGroup):
-    density = bpy.props.IntProperty(default = 2000)
+    density = bpy.props.IntProperty(default=2000,
+                                    name='Density',
+                                    description='Camera frustum point density')
 
 def register():
     bpy.utils.register_module(__name__)
-    bpy.types.Scene.camera_frustum_settings = bpy.props.PointerProperty(type = CameraFrustumSettings)
+    bpy.types.Scene.camera_frustum_settings = bpy.props.PointerProperty(type=CameraFrustumSettings)
 
 
 def unregister():
