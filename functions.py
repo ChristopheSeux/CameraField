@@ -20,15 +20,17 @@ def draw_callback_3d(self, context):
     bgl.glPointSize(4)
     bgl.glLineWidth(3)
 
-    for f_i, frame in enumerate(self.frames.values()):
-        if f_i == 0:  # and f_i != len(self.frames)-1:
-            bgl.glColor4f(1, 1, 1, 0.5)
-        elif f_i != len(self.frames) - 1:
-            bgl.glColor4f(1, 1, 0.0, 0.5)
+    # for f_i, frame in enumerate(self.frames.values()):
+    for co, color in zip(self.points['co'], self.points['colors']):
+        bgl.glColor4f(*color, 0.5)
+        # if f_i == 0:  # and f_i != len(self.frames)-1:
+        #     bgl.glColor4f(1, 1, 1, 0.5)
+        # elif f_i != len(self.frames) - 1:
+        #     bgl.glColor4f(1, 1, 0.0, 0.5)
 
         bgl.glBegin(bgl.GL_POINTS)
-        for point in frame['plain']:
-            bgl.glVertex3f(*point)
+        # for point in frame:
+        bgl.glVertex3f(*co)
 
         bgl.glEnd()
 

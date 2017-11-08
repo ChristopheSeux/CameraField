@@ -1,7 +1,7 @@
 import bpy
 
 
-class cameraFrustumPanel(bpy.types.Panel):
+class CameraFrustumPanel(bpy.types.Panel):
     bl_label = "Camera Frustum"
     bl_category = "CAMMAP"
     bl_space_type = 'VIEW_3D'
@@ -9,9 +9,26 @@ class cameraFrustumPanel(bpy.types.Panel):
 
     def draw(self, context):
         layout = self.layout
-        row = layout.row(align=True)
 
+        layout.prop(bpy.context.scene.camera_frustum_settings, "only_active")
+
+        row = layout.row(align=True)
         row.operator("camerafield.view_field", icon='RENDER_ANIMATION')
         row.prop(bpy.context.scene.camera_frustum_settings, "density")
-        # row = layout.row(align= True)
-        # row.label('Look throw cam Proj and select render Cam')
+
+
+
+class CameraFrustumCameraPanel(bpy.types.Panel):
+    bl_label = "Camera Frustum"
+    bl_space_type = 'PROPERTIES'
+    bl_region_type = 'WINDOW'
+    bl_context = "data"
+
+    def draw(self, context):
+        layout = self.layout
+
+        ob = context.object
+        cam = ob.data
+
+        layout.prop(cam.camera_frustum_settings, "active")
+        layout.prop(cam.camera_frustum_settings, "color")

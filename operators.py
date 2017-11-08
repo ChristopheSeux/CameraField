@@ -16,18 +16,19 @@ class ViewCameraField(bpy.types.Operator):
         self.current_frame = scene.frame_current
 
         cam = scene.camera
+        cam_color = cam.data.camera_frustum_settings.color
 
         # ratio = bpy.context.scene.render.resolution_y / bpy.context.scene.render.resolution_x
 
-        self.frames = {}
+        # self.frames = {}
         tmp_frame = []
 
-        self.rays = []
-        self.border = []
+        self.points = {"co": [],
+                       "colors": []}
 
         for i in range(scene.frame_start, scene.frame_end + 1):
             scene.frame_set(i)
-            random.seed(i)  # Use a predictable seed
+            random.seed(0)  # Use a predictable seed
 
             cam_coord = cam.matrix_world.to_translation()
             frame = cam.data.view_frame(bpy.context.scene)
@@ -38,9 +39,9 @@ class ViewCameraField(bpy.types.Operator):
 
             # if frame != tmp_frame:
             if True:
-                tmp_frame = frame
-                self.frames[i] = {}
-                self.frames[i]['plain'] = []
+                # tmp_frame = frame
+                # self.frames[i] = {}  # Why the dict?
+                # self.frames[i]['plain'] = []
 
                 vector_x = frame[0] - frame[3]
                 vector_y = frame[2] - frame[3]
@@ -54,7 +55,17 @@ class ViewCameraField(bpy.types.Operator):
 
                     if ray[0]:
                         ray_closer = ray[1] + (point-ray[1]).normalized() * 0.02
-                        self.frames[i]['plain'].append(ray_closer)
+
+                        # self.frames[i].append(ray_closer)
+                        point_color = cam_color.copy()
+                        if i in (scene.frame_start, scene.frame_end):
+                            point_color.s *= 0.2
+                        # point = (ray_closer.freeze(), point_color.freeze())
+                        if not ray_closer in self.points["co"]:
+                            self.points["co"].append(ray_closer)
+                            self.points["colors"].append(point_color)
+                        # self.points.add(point)
+        print(len(self.points["co"]))
 
     def modal(self, context, event):
         context.area.tag_redraw()
