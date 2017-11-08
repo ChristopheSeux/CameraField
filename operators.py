@@ -32,7 +32,7 @@ class ViewCameraField(bpy.types.Operator):
             cam_coord = cam.matrix_world.to_translation()
             frame = cam.data.view_frame(bpy.context.scene)
 
-            density = bpy.context.scene.CameraFrustumSettings.density
+            density = bpy.context.scene.camera_frustum_settings.density
 
             frame = [cam.matrix_world * corner for corner in frame]
 

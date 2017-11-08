@@ -9,9 +9,9 @@ class cameraFrustumPanel(bpy.types.Panel):
 
     def draw(self,context):
         layout = self.layout
-        row = layout.row(align= True)
+        row = layout.row(align=True)
 
-        row.operator("camerafield.view_field",icon = 'RENDER_ANIMATION')
-        row.prop(bpy.context.scene.CameraFrustumSettings,"density")
+        row.operator("camerafield.view_field", icon='RENDER_ANIMATION')
+        row.prop(bpy.context.scene.camera_frustum_settings, "density")
         #row = layout.row(align= True)
         #row.label('Look throw cam Proj and select render Cam')

@@ -6,7 +6,7 @@ bl_info = {
     "description": "View camera frustum",
     "warning": "",
     "wiki_url": "",
-    "category": "User",
+    "category": "Camera",
     }
 
 
@@ -25,9 +25,9 @@ class CameraFrustumSettings(bpy.types.PropertyGroup):
 
 def register():
     bpy.utils.register_module(__name__)
-    bpy.types.Scene.CameraFrustumSettings = bpy.props.PointerProperty(type = CameraFrustumSettings)
+    bpy.types.Scene.camera_frustum_settings = bpy.props.PointerProperty(type = CameraFrustumSettings)
 
 
 def unregister():
-    del bpy.types.Scene.CameraFrustumSettings
+    del bpy.types.Scene.camera_frustum_settings
     bpy.utils.unregister_module(__name__)
