@@ -40,6 +40,8 @@ class CameraFrustumCameraSettings(bpy.types.PropertyGroup):
                                     name='Active')
 
     color = bpy.props.FloatVectorProperty(default=(1.0, 1.0, 0.0),
+                                          min=0.0,
+                                          max=1.0,
                                           name='Color',
                                           description='Camera frustum point color',
                                           subtype='COLOR')
