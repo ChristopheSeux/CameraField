@@ -34,6 +34,8 @@ class ViewCameraField(bpy.types.Operator):
             random.seed(0)  # Use a predictable seed
 
             for cam in cams:
+                if not cam.data.camera_frustum_settings.active:
+                    continue
                 cam_color = cam.data.camera_frustum_settings.color
                 cam_coord = cam.matrix_world.to_translation()
                 frame = cam.data.view_frame(scene)
@@ -73,7 +75,7 @@ class ViewCameraField(bpy.types.Operator):
 
                             point_color = cam_color.copy()
                             if i in (scene.frame_start, scene.frame_end):
-                                point_color.s *= 0.5
+                                point_color.s *= 0.8
                             if not ray_closer in self.points["co"]:
                                 self.points["co"].append(ray_closer)
                                 self.points["colors"].append(point_color)
