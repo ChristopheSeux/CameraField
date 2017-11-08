@@ -51,7 +51,6 @@ class ViewCameraField(bpy.types.Operator):
                 vector_y = frame[2] - frame[3]
 
                 if scene.camera_frustum_settings.distribution == 'Random':
-                    number_x, number_y = 2, 2
                     points = [(random.random(), random.random())
                               for z in range(density)
                               ]
@@ -60,16 +59,15 @@ class ViewCameraField(bpy.types.Operator):
                     number_x = sqrt(density) / ratio
                     number_y = sqrt(density)
 
-                    points = [(x, y)
+                    points = [(x / (int(number_x) - 1),
+                               y / (int(number_y) - 1)
+                               )
                               for x in range(int(number_x))
                               for y in range(int(number_y))
                               ]
 
                 for x, y in points:
-                        point = (frame[3]
-                                 + vector_x * x / (int(number_x) - 1)
-                                 + vector_y * y / (int(number_y) - 1)
-                                 )
+                        point = (frame[3] + vector_x * x + vector_y * y)
 
                         ray = scene.ray_cast(cam_coord, point - cam_coord)
 
