@@ -14,19 +14,19 @@ import bgl
 #     return rightMin + valueScaled * rightSpan
 
 
-def draw_callback_3d(points):
+def draw_callback_3d(cameras):
     # bgl.glDisable(bgl.GL_DEPTH_TEST)
     bgl.glEnable(bgl.GL_BLEND)
     bgl.glPointSize(4)
     bgl.glLineWidth(3)
 
-    for co, color in zip(points['co'], points['colors']):
-        bgl.glColor4f(*color, 0.5)
+    bgl.glBegin(bgl.GL_POINTS)
+    for cam in cameras:
+        bgl.glColor4f(*cam["color"], 0.5)
+        for co in cam["co"]:
+            bgl.glVertex3f(*co)
 
-        bgl.glBegin(bgl.GL_POINTS)
-        bgl.glVertex3f(*co)
-
-        bgl.glEnd()
+    bgl.glEnd()
 
     # Restore opengl defaults
     bgl.glPointSize(1)

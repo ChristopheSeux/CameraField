@@ -6,8 +6,7 @@ from time import time
 
 from .functions import draw_callback_3d
 
-global_points = {"co": [],
-                 "colors": []}
+global_cameras = []
 
 class ViewCameraField(bpy.types.Operator):
     bl_idname = "camerafield.view_field"
@@ -20,14 +19,12 @@ class ViewCameraField(bpy.types.Operator):
             context.area.tag_redraw()
         except AttributeError:
             bpy.types.SpaceView3D.draw_handler_remove(self._handle_3d, 'WINDOW')
-            global_points["co"].clear()
-            global_points["colors"].clear()
+            global_cameras.clear()
             return {'CANCELLED'}
 
         if event.type in {'ESC'}:
             bpy.types.SpaceView3D.draw_handler_remove(self._handle_3d, 'WINDOW')
-            global_points["co"].clear()
-            global_points["colors"].clear()
+            global_cameras.clear()
             return {'CANCELLED'}
 
         return {'PASS_THROUGH'}
@@ -37,7 +34,7 @@ class ViewCameraField(bpy.types.Operator):
             scene = context.scene
             self.current_frame = scene.frame_current
 
-            if global_points['co']:
+            if global_cameras:
                 op_running = True
             else:
                 op_running = False
@@ -53,11 +50,15 @@ class ViewCameraField(bpy.types.Operator):
 
             seed = time()  # Different seed at each execution
 
-            for i in range(scene.frame_start, scene.frame_end + 1):
-                scene.frame_set(i)
-                random.seed(seed)  # Use a predictable seed
+            for cam in cams:
+                cam_color = cam.data.camera_frustum_settings.color
+                camera_points = {"color": cam_color,
+                                 "co": []}
 
-                for cam in cams:
+                for i in range(scene.frame_start, scene.frame_end + 1):
+                    scene.frame_set(i)
+                    random.seed(seed)  # Use a predictable seed
+
                     if not cam.data.camera_frustum_settings.active:
                         continue
 
@@ -65,7 +66,6 @@ class ViewCameraField(bpy.types.Operator):
                         self.report({'WARNING'}, "Camera type unsupported: " + cam.name)
                         continue
 
-                    cam_color = cam.data.camera_frustum_settings.color
                     cam_coord = cam.matrix_world.to_translation()
                     cam_direction = Vector(cam.matrix_world.transposed()[2][:-1])
 
@@ -104,19 +104,16 @@ class ViewCameraField(bpy.types.Operator):
 
                             if ray[0]:
                                 ray_closer = ray[1] + (point-ray[1]).normalized() * 0.02
-
-                                point_color = cam_color.copy()
-                                if i in (scene.frame_start, scene.frame_end):
-                                    point_color.s *= 0.8
-                                if not ray_closer in global_points["co"]:
-                                    global_points["co"].append(ray_closer)
-                                    global_points["colors"].append(point_color)
+                                if not ray_closer in camera_points["co"]:
+                                    camera_points["co"].append(ray_closer)
+                print(len(camera_points["co"]), 'points')
+                global_cameras.append(camera_points)
 
             if op_running:
                 return {'FINISHED'}
             else:
                 # the arguments we pass the callback
-                args = (global_points,)
+                args = (global_cameras,)
                 # Add the region OpenGL drawing callback
                 # draw in view space with 'POST_VIEW' and 'PRE_VIEW'
                 self._handle_3d = bpy.types.SpaceView3D.draw_handler_add(draw_callback_3d, args, 'WINDOW', 'POST_VIEW')
