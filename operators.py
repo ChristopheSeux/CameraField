@@ -6,6 +6,8 @@ from time import time
 
 from .functions import draw_callback_3d
 
+global_points = {"co": [],
+                 "colors": []}
 
 class ViewCameraField(bpy.types.Operator):
     bl_idname = "camerafield.view_field"
@@ -18,20 +20,27 @@ class ViewCameraField(bpy.types.Operator):
             context.area.tag_redraw()
         except AttributeError:
             bpy.types.SpaceView3D.draw_handler_remove(self._handle_3d, 'WINDOW')
+            global_points["co"].clear()
+            global_points["colors"].clear()
             return {'CANCELLED'}
 
         if event.type in {'ESC'}:
             bpy.types.SpaceView3D.draw_handler_remove(self._handle_3d, 'WINDOW')
-
+            global_points["co"].clear()
+            global_points["colors"].clear()
             return {'CANCELLED'}
 
         return {'PASS_THROUGH'}
-        #return {'RUNNING_MODAL'}
 
     def invoke(self, context, event):
         if context.area.type == 'VIEW_3D':
             scene = context.scene
             self.current_frame = scene.frame_current
+
+            if global_points['co']:
+                op_running = True
+            else:
+                op_running = False
 
             if scene.camera_frustum_settings.only_active:
                 cams = (scene.camera,)
@@ -40,11 +49,7 @@ class ViewCameraField(bpy.types.Operator):
 
             ratio = context.scene.render.resolution_y / context.scene.render.resolution_x
 
-            # self.frames = {}
             tmp_frame = []
-
-            self.points = {"co": [],
-                           "colors": []}
 
             seed = time()  # Different seed at each execution
 
@@ -103,19 +108,22 @@ class ViewCameraField(bpy.types.Operator):
                                 point_color = cam_color.copy()
                                 if i in (scene.frame_start, scene.frame_end):
                                     point_color.s *= 0.8
-                                if not ray_closer in self.points["co"]:
-                                    self.points["co"].append(ray_closer)
-                                    self.points["colors"].append(point_color)
+                                if not ray_closer in global_points["co"]:
+                                    global_points["co"].append(ray_closer)
+                                    global_points["colors"].append(point_color)
 
-            # the arguments we pass the callback
-            args = (self, context)
-            # Add the region OpenGL drawing callback
-            # draw in view space with 'POST_VIEW' and 'PRE_VIEW'
-            self._handle_3d = bpy.types.SpaceView3D.draw_handler_add(draw_callback_3d, args, 'WINDOW', 'POST_VIEW')
+            if op_running:
+                return {'FINISHED'}
+            else:
+                # the arguments we pass the callback
+                args = (global_points,)
+                # Add the region OpenGL drawing callback
+                # draw in view space with 'POST_VIEW' and 'PRE_VIEW'
+                self._handle_3d = bpy.types.SpaceView3D.draw_handler_add(draw_callback_3d, args, 'WINDOW', 'POST_VIEW')
 
-            context.window_manager.modal_handler_add(self)
+                context.window_manager.modal_handler_add(self)
 
-            return {'RUNNING_MODAL'}
+                return {'RUNNING_MODAL'}
         else:
             self.report({'WARNING'}, "View3D not found, cannot run operator")
             return {'CANCELLED'}
