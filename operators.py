@@ -1,115 +1,126 @@
 import bpy
 import random
+from math import sqrt
 from mathutils import Vector
+from time import time
 
-from .functions import *
+from .functions import draw_callback_3d
+
+global_cameras = []
 
 class ViewCameraField(bpy.types.Operator):
     bl_idname = "camerafield.view_field"
     bl_label = "Add Camera Frustum"
     bl_options = {'REGISTER', 'UNDO'}
-    bl_description = "press Echap to quit"
-
-
-    def __init__(self):
-        scene = bpy.context.scene
-        self.current_frame = scene.frame_current
-
-        cam = scene.camera
-
-        ratio = bpy.context.scene.render.resolution_y / bpy.context.scene.render.resolution_x
-
-        self.frames = {}
-        tmp_frame =[]
-
-        self.rays=[]
-        self.border = []
-
-        for i in range(scene.frame_start, scene.frame_end+1) :
-
-            scene.frame_set(i)
-
-            cam_coord = cam.matrix_world.to_translation()
-            frame = cam.data.view_frame(bpy.context.scene)
-
-            density = bpy.context.scene.CameraFrustumSettings.density
-
-            frame = [cam.matrix_world * corner for corner in frame]
-
-            if  frame != tmp_frame :
-                tmp_frame = frame
-                self.frames[i] = {}
-                #self.frames[i]['border'] = []
-                self.frames[i]['plain'] = []
-
-                vector_x = Vector(frame[0]-frame[3])
-                vector_y = Vector(frame[2]-frame[3])
-
-                len_x = vector_x.length
-                len_y = vector_y.length
-
-                vector_x.normalize()
-                vector_y.normalize()
-
-                for z in range(0,density) :
-                    random_x = random.random()
-                    random_y =random.random()
-                    point = frame[3]+vector_x*random_x*len_x +vector_y*random_y*len_y
-
-                    ray = bpy.context.scene.ray_cast(cam_coord,point-cam_coord,8000)
-
-                    if ray[0] :
-                        ray_closer = ray[1]+(point-ray[1]).normalized()*0.02
-                        self.frames[i]['plain'].append(ray_closer)
-                '''
-                y_nb = round(density*ratio)
-                for x in range(0,density+1):
-                    for y in range (0,y_nb+1):
-                        vector_x = Vector(frame[0]-frame[3])
-                        vector_y = Vector(frame[2]-frame[3])
-
-                        len_x = vector_x.length
-                        len_y = vector_y.length
-
-                        vector_x.normalize()
-                        vector_y.normalize()
-
-                        point = frame[3]+vector_x*remap(x,0,density,0,1)*len_x +vector_y*remap(y,0,y_nb,0,1)*len_y
-
-                        ray = bpy.context.scene.ray_cast(cam_coord,point-cam_coord,8000)
-
-                        #print(point,ray)
-
-                        ray_closer = ray[1]+(point-ray[1]).normalized()*0.02
-
-                        if ray[0] :
-
-                            self.frames[i]['plain'].append(ray_closer)
-                                '''
-                    #self.frames[i]['border'] =[border_top,border_left,border_right,border_bottom]
-                        #rays.append(bpy.context.scene.ray_cast(cam_coord,point_y-cam_coord,8000)[1])
+    bl_description = "Press escape to quit"
 
     def modal(self, context, event):
-        context.area.tag_redraw()
+        try:
+            context.area.tag_redraw()
+        except AttributeError:
+            bpy.types.SpaceView3D.draw_handler_remove(self._handle_3d, 'WINDOW')
+            global_cameras.clear()
+            return {'CANCELLED'}
 
         if event.type in {'ESC'}:
             bpy.types.SpaceView3D.draw_handler_remove(self._handle_3d, 'WINDOW')
-
+            global_cameras.clear()
             return {'CANCELLED'}
 
         return {'PASS_THROUGH'}
-        #return {'RUNNING_MODAL'}
 
     def invoke(self, context, event):
         if context.area.type == 'VIEW_3D':
-            # the arguments we pass the the callback
-            args = (self,context)
-            # Add the region OpenGL drawing callback
-            # draw in view space with 'POST_VIEW' and 'PRE_VIEW'
-            self._handle_3d = bpy.types.SpaceView3D.draw_handler_add(draw_callback_3d, args, 'WINDOW', 'POST_VIEW')
+            scene = context.scene
+            self.current_frame = scene.frame_current
 
-            context.window_manager.modal_handler_add(self)
-            return {'RUNNING_MODAL'}
+            if global_cameras:
+                op_running = True
+            else:
+                op_running = False
+
+            if scene.camera_frustum_settings.only_active:
+                cams = (scene.camera,)
+            else:
+                cams = [o for o in context.visible_objects if o.type == 'CAMERA']
+
+            ratio = context.scene.render.resolution_y / context.scene.render.resolution_x
+
+            tmp_frame = []
+
+            seed = time()  # Different seed at each execution
+
+            for cam in cams:
+                cam_color = cam.data.camera_frustum_settings.color
+                camera_points = {"color": cam_color,
+                                 "co": []}
+
+                for i in range(scene.frame_start, scene.frame_end + 1):
+                    scene.frame_set(i)
+                    random.seed(seed)  # Use a predictable seed
+
+                    if not cam.data.camera_frustum_settings.active:
+                        continue
+
+                    if cam.data.type not in ('PERSP', 'ORTHO'):
+                        self.report({'WARNING'}, "Camera type unsupported: " + cam.name)
+                        continue
+
+                    cam_coord = cam.matrix_world.to_translation()
+                    cam_direction = Vector(cam.matrix_world.transposed()[2][:-1])
+
+                    frame = cam.data.view_frame(scene)
+
+                    density = scene.camera_frustum_settings.density
+
+                    frame = [cam.matrix_world.normalized() * corner for corner in frame]
+
+                    vector_x = frame[0] - frame[3]
+                    vector_y = frame[2] - frame[3]
+
+                    if scene.camera_frustum_settings.distribution == 'Random':
+                        points = [(random.random(), random.random())
+                                  for z in range(density)
+                                  ]
+
+                    elif scene.camera_frustum_settings.distribution == 'Grid':
+                        density_x = sqrt(density) / sqrt(ratio)
+                        density_y = sqrt(density) * sqrt(ratio)
+
+                        points = [(x / (int(density_x) - 1),
+                                   y / (int(density_y) - 1)
+                                   )
+                                  for x in range(int(density_x))
+                                  for y in range(int(density_y))
+                                  ]
+
+                    for x, y in points:
+                            point = (frame[3] + vector_x * x + vector_y * y)
+
+                            if cam.data.type == 'PERSP':
+                                ray = scene.ray_cast(cam_coord, point - cam_coord)
+                            elif cam.data.type == 'ORTHO':
+                                ray = scene.ray_cast(point, -cam_direction)
+
+                            if ray[0]:
+                                ray_closer = ray[1] + (point-ray[1]).normalized() * 0.02
+                                if not ray_closer in camera_points["co"]:
+                                    camera_points["co"].append(ray_closer)
+                print(len(camera_points["co"]), 'points')
+                global_cameras.append(camera_points)
+
+            if op_running:
+                return {'FINISHED'}
+            else:
+                # the arguments we pass the callback
+                args = (global_cameras,)
+                # Add the region OpenGL drawing callback
+                # draw in view space with 'POST_VIEW' and 'PRE_VIEW'
+                self._handle_3d = bpy.types.SpaceView3D.draw_handler_add(draw_callback_3d, args, 'WINDOW', 'POST_VIEW')
+
+                context.window_manager.modal_handler_add(self)
+
+                return {'RUNNING_MODAL'}
         else:
             self.report({'WARNING'}, "View3D not found, cannot run operator")
             return {'CANCELLED'}
