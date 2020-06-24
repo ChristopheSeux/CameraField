@@ -46,8 +46,6 @@ class ViewCameraField(bpy.types.Operator):
 
             ratio = context.scene.render.resolution_y / context.scene.render.resolution_x
 
-            tmp_frame = []
-
             seed = time()  # Different seed at each execution
 
             for cam in cams:
@@ -69,11 +67,11 @@ class ViewCameraField(bpy.types.Operator):
                     cam_coord = cam.matrix_world.to_translation()
                     cam_direction = Vector(cam.matrix_world.transposed()[2][:-1])
 
-                    frame = cam.data.view_frame(scene)
+                    frame = cam.data.view_frame(scene=scene)
 
                     density = scene.camera_frustum_settings.density
 
-                    frame = [cam.matrix_world.normalized() * corner for corner in frame]
+                    frame = [cam.matrix_world.normalized() @ corner for corner in frame]
 
                     vector_x = frame[0] - frame[3]
                     vector_y = frame[2] - frame[3]
@@ -98,15 +96,14 @@ class ViewCameraField(bpy.types.Operator):
                             point = (frame[3] + vector_x * x + vector_y * y)
 
                             if cam.data.type == 'PERSP':
-                                ray = scene.ray_cast(cam_coord, point - cam_coord)
+                                ray = scene.ray_cast(context.view_layer, cam_coord, point - cam_coord)
                             elif cam.data.type == 'ORTHO':
-                                ray = scene.ray_cast(point, -cam_direction)
+                                ray = scene.ray_cast(context.view_layer, point, -cam_direction)
 
                             if ray[0]:
                                 ray_closer = ray[1] + (point-ray[1]).normalized() * 0.02
                                 if not ray_closer in camera_points["co"]:
                                     camera_points["co"].append(ray_closer)
-                print(len(camera_points["co"]), 'points')
                 global_cameras.append(camera_points)
 
             if op_running:

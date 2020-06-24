@@ -1,36 +1,28 @@
 import bpy
 import bgl
+import gpu
+from gpu_extras.batch import batch_for_shader
 
-
-# def remap(value, leftMin, leftMax, rightMin, rightMax):
-#     # Figure out how 'wide' each range is
-#     leftSpan = leftMax - leftMin
-#     rightSpan = rightMax - rightMin
-#
-#     # Convert the left range into a 0-1 range (float)
-#     valueScaled = (value - leftMin) / leftSpan
-#
-#     # Convert the 0-1 range into a value in the right range.
-#     return rightMin + valueScaled * rightSpan
-
+shader = gpu.shader.from_builtin('3D_FLAT_COLOR')
 
 def draw_callback_3d(cameras):
-    # bgl.glDisable(bgl.GL_DEPTH_TEST)
-    bgl.glEnable(bgl.GL_BLEND)
     bgl.glPointSize(4)
-    bgl.glLineWidth(3)
+    bgl.glEnable(bgl.GL_BLEND)
 
-    bgl.glBegin(bgl.GL_POINTS)
+    coords = []
+    colors = []
+
     for cam in cameras:
-        bgl.glColor4f(*cam["color"], 0.5)
         for co in cam["co"]:
-            bgl.glVertex3f(*co)
+            coords.append(co)
+            colors.append(list(cam["color"]) + [0.5])
 
-    bgl.glEnd()
+    batch = batch_for_shader(shader, 'POINTS', {"pos": coords,
+                                                "color": colors})
+    shader.bind()
+
+    batch.draw(shader)
 
     # Restore opengl defaults
     bgl.glPointSize(1)
     bgl.glDisable(bgl.GL_BLEND)
-    bgl.glColor4f(0.0, 0.0, 0.0, 1.0)
-
-    # bgl.glEnable(bgl.GL_DEPTH_TEST)
