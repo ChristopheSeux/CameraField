@@ -9,7 +9,7 @@ from .functions import draw_callback_3d
 global_cameras = []
 
 
-class BakeFieldToObject(bpy.types.Operator):
+class CAMERA_OT_bake_field_to_object(bpy.types.Operator):
     bl_idname = "camerafield.bake_to_object"
     bl_label = "Bake Camera Frustum To Object"
     bl_options = {'REGISTER', 'UNDO'}
@@ -36,7 +36,7 @@ class BakeFieldToObject(bpy.types.Operator):
         return {'FINISHED'}
 
 
-class ViewCameraField(bpy.types.Operator):
+class CAMERA_OT_view_camera_field(bpy.types.Operator):
     bl_idname = "camerafield.view_field"
     bl_label = "Add Camera Frustum"
     bl_options = {'REGISTER', 'UNDO'}

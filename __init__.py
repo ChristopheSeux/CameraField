@@ -1,7 +1,7 @@
 bl_info = {
     "name": "Camera Field",
     "author": "Christophe SEUX",
-    "version": (1, 0),
+    "version": (1, 0, 1),
     "blender": (2, 80, 0),
     "description": "View camera frustum",
     "warning": "",
@@ -37,18 +37,19 @@ class CameraFrustumSettings(bpy.types.PropertyGroup):
 
 class CameraFrustumCameraSettings(bpy.types.PropertyGroup):
     enable: bpy.props.BoolProperty(default=True,
-                                    name='Enable')
+                                   name="Enable",
+                                   description="Show points for this camera")
 
     color: bpy.props.FloatVectorProperty(default=(1.0, 1.0, 0.0),
-                                          min=0.0,
-                                          max=1.0,
-                                          name='Color',
-                                          description='Camera frustum point color',
-                                          subtype='COLOR')
+                                         min=0.0,
+                                         max=1.0,
+                                         name="Color",
+                                         description="Camera frustum point color",
+                                         subtype="COLOR")
 
 classes = (CameraFrustumSettings, CameraFrustumCameraSettings,
            CAMERA_PT_FrustumCameraPanel, CAMERA_PT_FrustumPanel,
-           ViewCameraField, BakeFieldToObject)
+           CAMERA_OT_view_camera_field, CAMERA_OT_bake_field_to_object)
 
 def register():
     for cls in classes:
