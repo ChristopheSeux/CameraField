@@ -8,6 +8,34 @@ from .functions import draw_callback_3d
 
 global_cameras = []
 
+
+class BakeFieldToObject(bpy.types.Operator):
+    bl_idname = "camerafield.bake_to_object"
+    bl_label = "Bake Camera Frustum To Object"
+    bl_options = {'REGISTER', 'UNDO'}
+
+    @classmethod
+    def poll(self, context):
+        return global_cameras
+
+    def execute(self, context):
+        bake_data = bpy.data.meshes.new('CameraField')
+        bake_object = bpy.data.objects.new('CameraField', bake_data)
+        if not bake_object.name in context.scene.collection.all_objects:
+            context.collection.objects.link(bake_object)
+
+        verts = []
+
+        for cam in global_cameras:
+            if cam['camera_data'].camera_frustum_settings.enable:
+                for co in cam["co"]:
+                    verts.append(co)
+
+        bake_data.from_pydata(verts, [], [])
+
+        return {'FINISHED'}
+
+
 class ViewCameraField(bpy.types.Operator):
     bl_idname = "camerafield.view_field"
     bl_label = "Add Camera Frustum"

@@ -47,7 +47,8 @@ class CameraFrustumCameraSettings(bpy.types.PropertyGroup):
                                           subtype='COLOR')
 
 classes = (CameraFrustumSettings, CameraFrustumCameraSettings,
-           CAMERA_PT_FrustumCameraPanel, CAMERA_PT_FrustumPanel, ViewCameraField)
+           CAMERA_PT_FrustumCameraPanel, CAMERA_PT_FrustumPanel,
+           ViewCameraField, BakeFieldToObject)
 
 def register():
     for cls in classes:
