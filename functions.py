@@ -13,9 +13,10 @@ def draw_callback_3d(cameras):
     colors = []
 
     for cam in cameras:
-        for co in cam["co"]:
-            coords.append(co)
-            colors.append(list(cam["color"]) + [0.5])
+        if cam['camera_data'].camera_frustum_settings.enable:
+            for co in cam["co"]:
+                coords.append(co)
+                colors.append(list(cam["color"]) + [0.5])
 
     batch = batch_for_shader(shader, 'POINTS', {"pos": coords,
                                                 "color": colors})

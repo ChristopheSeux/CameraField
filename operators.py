@@ -79,13 +79,14 @@ class ViewCameraField(bpy.types.Operator):
             for cam in cams:
                 cam_color = cam.data.camera_frustum_settings.color
                 camera_points = {"color": cam_color,
-                                 "co": []}
+                                 "co": [],
+                                 "camera_data": cam.data}
 
                 for i in range(scene.frame_start, scene.frame_end + 1):
                     scene.frame_set(i)
                     random.seed(seed)  # Use a predictable seed
 
-                    if not cam.data.camera_frustum_settings.active:
+                    if not cam.data.camera_frustum_settings.enable:
                         continue
 
                     if cam.data.type not in ('PERSP', 'ORTHO'):

@@ -38,5 +38,5 @@ class CAMERA_PT_FrustumCameraPanel(bpy.types.Panel):
         ob = context.object
         cam = ob.data
 
-        layout.prop(cam.camera_frustum_settings, "active")
+        layout.prop(cam.camera_frustum_settings, "enable")
         layout.prop(cam.camera_frustum_settings, "color")

@@ -36,8 +36,8 @@ class CameraFrustumSettings(bpy.types.PropertyGroup):
 
 
 class CameraFrustumCameraSettings(bpy.types.PropertyGroup):
-    active: bpy.props.BoolProperty(default=True,
-                                    name='Active')
+    enable: bpy.props.BoolProperty(default=True,
+                                    name='Enable')
 
     color: bpy.props.FloatVectorProperty(default=(1.0, 1.0, 0.0),
                                           min=0.0,
