@@ -1,11 +1,11 @@
 import bpy
 
 
-class CameraFrustumPanel(bpy.types.Panel):
+class CAMERA_PT_FrustumPanel(bpy.types.Panel):
     bl_label = "Camera Frustum"
     bl_category = "CAMMAP"
     bl_space_type = 'VIEW_3D'
-    bl_region_type = 'TOOLS'
+    bl_region_type = 'UI'
 
     def draw(self, context):
         layout = self.layout
@@ -18,10 +18,10 @@ class CameraFrustumPanel(bpy.types.Panel):
 
         layout.separator()
         layout.operator("camerafield.view_field", icon='RENDER_ANIMATION')
+        layout.operator("camerafield.bake_to_object")
 
 
-
-class CameraFrustumCameraPanel(bpy.types.Panel):
+class CAMERA_PT_FrustumCameraPanel(bpy.types.Panel):
     bl_label = "Camera Frustum"
     bl_space_type = 'PROPERTIES'
     bl_region_type = 'WINDOW'
@@ -38,5 +38,5 @@ class CameraFrustumCameraPanel(bpy.types.Panel):
         ob = context.object
         cam = ob.data
 
-        layout.prop(cam.camera_frustum_settings, "active")
+        layout.prop(cam.camera_frustum_settings, "enable")
         layout.prop(cam.camera_frustum_settings, "color")
